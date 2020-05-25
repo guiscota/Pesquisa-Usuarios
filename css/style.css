@@ -1,0 +1,44 @@
+body {
+  background-color: #0b776b52;
+}
+
+.container {
+  margin-top: 2em;
+  border: 1px solid rgba(169, 169, 169, 0.5);
+  border-radius: 10px;
+  background-color: rgb(245, 248, 245);
+}
+
+#titulo {
+  margin-top: 5px;
+  text-align: center;
+}
+
+h3 {
+  margin-top: 5px;
+}
+
+h4 {
+  margin-top: 5px;
+}
+
+#inputBuscar {
+  float: left;
+}
+
+#buttonBuscar {
+  margin-top: 5px;
+  width: 125px;
+}
+
+.estatisticas {
+  font-size: 1.2em;
+  border: 1px solid rgba(169, 169, 169, 0.5);
+  border-radius: 10px;
+  padding: 12px 8px 12px 8px;
+  margin-top: 5px;
+}
+
+.collection img{
+ width: 50px;
+}
