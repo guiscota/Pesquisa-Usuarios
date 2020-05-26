@@ -1,56 +1,27 @@
-let inputBuscar = null;
-let buttonBuscar = null;
-
-let loadPagina = null;
-
-let form = null;
-
-let totalSexoMasculino = 0;
-let totalSexoFeminino = 0;
+let todosUsuarios = [];
+let inputUsuario = '';
 let somatorioIdades = 0;
-let mediaIdades = 0;
-
-let dadosUsuarios = [];
-let dadosUsuariosFiltrados = [];
-let totalUsuarios = 0;
-let collection = null;
-
-let numeroFormatado = null;
+let calculoMediaIdades = 0;
 
 window.addEventListener('load', () => {
   form = document.querySelector('form');
-  loadPagina = document.querySelector('.preloader-wrapper');
+  loader = document.querySelector('.preloader-wrapper');
 
-  inputBuscar = document.querySelector('#inputBuscar');
-
-  buttonBuscar = document.querySelector('#buttonBuscar');
-
-  totalSexoMasculino = document.querySelector('#totalSexoMasculino');
-  totalSexoFeminino = document.querySelector('#totalSexoFeminino');
-  somatorioIdades = document.querySelector('#somatorioIdades');
-  mediaIdades = document.querySelector('#mediaIdades');
+  usuariosFiltrados = document.querySelector('.usuarios-filtrados');
+  inputUsuario = document.querySelector("#inputUsuario");
 
   totalUsuarios = document.querySelector('#totalUsuarios');
-  collection = document.querySelector('.collection');
+  totalSexoMasculino = document.querySelector("#totalSexoMasculino");
+  totalSexoFeminino = document.querySelector("#totalSexoFeminino");
+  totalIdades = document.querySelector("#totalIdades");
+  mediaIdades = document.querySelector("#mediaIdades");
 
-  numeroFormatado = Intl.NumberFormat('pt-br');
+  numeroFormatado = Intl.NumberFormat("pt-BR");
 
-  preloader();
+  ocultarLoader();
+  buscarUsuarios();
   previnirSubmit();
 });
-
-const preloader = () => {
-  inputBuscar.disabled = true;
-  buttonBuscar.disabled = true;
-
-  setTimeout(() => {
-    loadPagina.parentNode.removeChild(loadPagina);
-    inputBuscar.disabled = false;
-    buttonBuscar.disabled = false;
-
-    ativarInput();
-  }, 1200);
-};
 
 const previnirSubmit = () => {
   const handleFormSubmit = (event) => {
@@ -60,129 +31,116 @@ const previnirSubmit = () => {
   form.addEventListener('submit', handleFormSubmit);
 }
 
-const ativarInput = () => {
+const ocultarLoader = () => {
+  inputUsuario.disabled = true;
 
-  const lidarComDigitacao = (event) => {
-    let temTexto = !!inputBuscar.value && inputBuscar.value.trim() !== ''; // Verificação, se o input estiver vazio torna a variavel false, senao true
-
-    if (!temTexto) {
-      if (event.key === 'Enter' || event.type === 'click') {
-        M.toast({ html: 'Preencha um ao menos uma letra.' });
-      }
-      return;
-    }
-
-    if (event.key === 'Enter' || event.type === 'click') {
-      collection.innerHTML = `<div class="progress">
-          <div class="indeterminate"></div>
-      </div>`;
-
-      buscarUsuarios();
-      renderizar();
-    }
-  };
-
-  buttonBuscar.addEventListener('click', lidarComDigitacao);
-  inputBuscar.focus();
+  setTimeout(() => {
+    loader.classList.add('hide');
+    inputUsuario.disabled = false;
+    inputUsuario.focus();
+  }, 1200);
 };
 
+
+/** Buscar dados dos usuários pela API fornecida */
 const buscarUsuarios = async () => {
 
   const res = await fetch('https://randomuser.me/api/?seed=javascript&results=100&nat=BR&noinfo');
-  const dados = await res.json();
+  let dados = await res.json();
 
-  verDadosUsuarios(dados);
-};
 
-const verDadosUsuarios = (dados) => {
-  dadosUsuarios = dados.results
-    .map(usuario => {
-      return {
-        foto: usuario.picture.medium,
-        genero: usuario.gender,
-        nome: `${usuario.name.first} ${usuario.name.last}`,
-        idade: usuario.dob.age
-      };
-    });
+  // Buscar somente os dados necessarios
+  todosUsuarios = dados.results.map(usuario => {
+    const { name, picture, dob, gender } = usuario;
 
-  filtrarUsuarios();
-};
-
-const filtrarUsuarios = () => {
-  dadosUsuariosFiltrados = dadosUsuarios.filter((usuario) => {
-    usuario.name.toLowerCase().includes(inputBuscar.value.toLowerCase());
+    return {
+      foto: picture.medium,
+      genero: gender,
+      nome: name.first + ' ' + name.last,
+      idade: dob.age
+    };
   });
-
-  renderizar();
-};
-
-const renderizar = () => {
-  renderizarEstatisticas();
   renderizarUsuarios();
-};
-
-const renderizarEstatisticas = () => {
-  totalUsuarios.textContent = dadosUsuarios.length;
-
-  totalSexoMasculino.textContent = contaHomens();
-  totalSexoFeminino.textContent = contaMulheres();
-  somatorioIdades.textContent = somarIdades();
-  mediaIdades.textContent = calcularMediaIdades();
-
-};
-
-const contaHomens = () => {
-  let contaHomens = 0;
-
-  dadosUsuarios.forEach(usuario => {
-    if (usuario.genero === 'male')
-      contaHomens++;
-  });
-
-  return contaHomens;
-};
-
-const contaMulheres = () => {
-  let contaMulheres = 0;
-
-  dadosUsuarios.forEach(usuario => {
-    if (usuario.genero === 'female')
-      contaMulheres++;
-  });
-
-  return contaMulheres;
-};
-
-const somarIdades = () => {
-  return somatorioIdades = dadosUsuarios.reduce((acumulator, current) => {
-    return (acumulator + current.idade);
-  }, 0); //0 é o valor inicial do acumulador
-};
-
-const calcularMediaIdades = () => {
-  let somatorioIdades = dadosUsuarios.reduce((acumulator, current) => {
-    return (acumulator + current.idade);
-  }, 0); //0 é o valor inicial do acumulador
-
-  return somatorioIdades / dadosUsuarios.length;
-};
+}
 
 const renderizarUsuarios = () => {
-  let usuariosHTML = "";
+  inputPesquisa();
 
-  dadosUsuarios.forEach(usuario => {
-    usuarioHTML = `
+  // Filtrar usuários de acordo com a entrada
+  const usuarioFiltrado = todosUsuarios.filter(usuario => {
+    const nomeFormatado = usuario.nome.toLowerCase();
+    const inputFormatado = inputUsuario.value.toLowerCase();
+
+    return nomeFormatado.includes(inputFormatado);
+  })
+
+  // Ordenar em ordem alfabética os usuarios de acordo com os nomes
+  usuarioFiltrado.sort((a, b) => {
+    return a.nome.localeCompare(b.nome);
+  });
+ 
+  let usuariosHTML = '';
+  
+  totalUsuarios.textContent = usuarioFiltrado.length;
+
+  usuarioFiltrado.forEach(usuario => {
+    const { nome, foto, idade } = usuario;
+
+    // Cria as linha HTMl com os dados dos usuários
+    const usuarioHTML = `
     <li class="collection-item">
       <img src="${usuario.foto}" class="circle">
       <p class="flow-text">${usuario.nome}, <spam>${usuario.idade}</spam> anos</p>
     </li>`;
 
     usuariosHTML += usuarioHTML;
+
   });
+  usuariosFiltrados.innerHTML = usuariosHTML;
+  renderizarEstatisticas(usuarioFiltrado);
+}
 
-  collection.innerHTML = usuariosHTML;
-};
+/** listener do input */
+const inputPesquisa = () => {
+  inputUsuario.addEventListener("keyup", verificarValorDigitado);
+  inputUsuario.focus();
+  return inputUsuario;
+}
 
-const formatarNumero = (numero) => {
-  return numeroFormatado.format(numero);
+/** Parâmetro de evento e chamada para renderização */
+const verificarValorDigitado = (event) => {
+  renderizarUsuarios();
+  
+  let temTexto = !!inputUsuario.value; // Verificação, se o input estiver vazio torna a variavel false, senao true
+
+  if (!temTexto) {
+    if (event.key === 'Enter') {
+      M.toast({ html: 'Preencha um ao menos uma letra.' });
+    }
+    return;
+  }
+}
+
+const renderizarEstatisticas = (usuarioFiltrado) => {
+  const arrayHomens = usuarioFiltrado.filter(usuario => usuario.genero === "male");
+  const arrayMulheres = usuarioFiltrado.filter(usuario => usuario.genero === "female");
+
+  totalSexoMasculino.textContent = arrayHomens.length;
+  totalSexoFeminino.textContent = arrayMulheres.length;
+
+  const somatorioIdades = usuarioFiltrado.reduce((acc, current) => {
+    return acc + current.idade;
+  }, 0);
+
+  totalIdades.textContent = usuarioFiltrado.length !== 0 ? formatNumber(somatorioIdades) : 0;
+
+  const calculoMediaIdades =
+    usuarioFiltrado.length !== 0 ? formatNumber(somatorioIdades / usuarioFiltrado.length) : 0;
+
+  mediaIdades.textContent = calculoMediaIdades;
+}
+
+/** Formata numeros */
+const formatNumber = (number) => {
+  return numeroFormatado.format(number);
 }
