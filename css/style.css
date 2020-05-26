@@ -3,7 +3,7 @@ body {
 }
 
 .container {
-  margin-top: 2em;
+  margin-top: 20px;
   border: 1px solid rgba(169, 169, 169, 0.5);
   border-radius: 10px;
   background-color: rgb(245, 248, 245);
@@ -20,6 +20,10 @@ h3 {
 
 h4 {
   margin-top: 5px;
+}
+
+.preloader-wrapper {
+  margin-left: 45%;
 }
 
 #inputBuscar {
@@ -41,6 +45,12 @@ h4 {
 
 .estatisticas spam {
   font-weight: bold;
+}
+
+.collection {
+  display:block;
+  height:250px;
+  overflow:auto;
 }
 
 .collection img {
